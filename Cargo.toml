@@ -1,0 +1,7 @@
+[package]
+name = "rustline"
+version = "0.1.0"
+authors = ["Matteo De Carlo <matteo.dek@gmail.com>"]
+
+[dependencies]
+term = "*"
