@@ -5,3 +5,4 @@ authors = ["Matteo De Carlo <matteo.dek@gmail.com>"]
 
 [dependencies]
 term = "*"
+git2 = "0.3.2"

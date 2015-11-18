@@ -1,8 +1,10 @@
 extern crate term;
+extern crate git2;
 
 use std::env;
 use std::process::exit;
 use term::StdoutTerminal;
+use git2::{Repository,Reference, RepositoryState};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -51,7 +53,12 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
         cout.bg(BG_NAME).unwrap();
         cout.attr(term::Attr::Bold).unwrap();
         write!(cout, "%}}");
-        write!(cout, " {} ", env!("USER"));
+        let username = match env::var("USER") {
+            Ok(val) => val,
+            Err(_) => "".to_string(),
+        };
+
+        write!(cout, " {} ", username);
 
         write!(cout, "%{{");
         assert!(cout.reset().unwrap());
@@ -118,6 +125,59 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
 }
 
 fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
+    let dir = env::current_dir().unwrap();
+
+    match Repository::discover(dir) {
+        Ok(repo) => {
+            match repo.head() {
+                Ok(reference) => {
+                    let reference = reference;
+                    let reference = match reference.shorthand() {
+                        Some(name) => {
+                            name
+                        },
+                        None => {
+                            "##missing##"
+                        },
+                    };
+
+                    write!(cout, "%{{");
+                    cout.fg(term::color::BRIGHT_BLACK).unwrap();
+                    cout.bg(term::color::BLACK).unwrap();
+                    write!(cout, "%}}");
+                    write!(cout, "");
+                    write!(cout, "%{{");
+                    cout.fg(term::color::WHITE).unwrap();
+                    cout.bg(term::color::BRIGHT_BLACK).unwrap();
+                    write!(cout, "%}}");
+                    write!(cout, "  {} ", reference);
+
+                    let status = match repo.state() {
+                        RepositoryState::Clean => "",
+                        RepositoryState::Merge => "Merge ",
+                        RepositoryState::Revert => "Revert ",
+                        RepositoryState::CherryPick => "CherryPick ",
+                        RepositoryState::Bisect => "Bisect ",
+                        RepositoryState::Rebase => "Rebase ",
+                        RepositoryState::RebaseInteractive => "RebaseInteractive ",
+                        RepositoryState::RebaseMerge => "RebaseMerge ",
+                        RepositoryState::ApplyMailbox => "ApplyMailbox ",
+                        RepositoryState::ApplyMailboxOrRebase => "ApplyMailboxOrRebase ",
+                    };
+
+                    if status != "" {
+                        write!(cout, "%{{");
+                        cout.fg(term::color::YELLOW).unwrap();
+                        write!(cout, "%}}");
+                        write!(cout, "{}", status);
+                    }
+                },
+                Err(_) => {},
+            };
+        },
+        Err(_) => {},
+    };
+
     if conf.flag_last_pipe_status != "0" {
 
         write!(cout, "%{{");
