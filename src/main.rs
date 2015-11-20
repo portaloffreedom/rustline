@@ -111,14 +111,14 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
             write!(cout, "%}}");
             write!(cout, " {} ", conf.flag_jobnum);
             write!(cout, "%{{");
+            assert!(cout.reset().unwrap());
             cout.fg(term::color::YELLOW).unwrap();
-            cout.bg(term::color::BLACK).unwrap();
             write!(cout, "%}}");
             write!(cout, " ");
         } else {
             write!(cout, "%{{");
+            assert!(cout.reset().unwrap());
             cout.fg(BG_PATH).unwrap();
-            cout.bg(term::color::BLACK).unwrap();
             write!(cout, "%}}");
             write!(cout, " ");
         }
@@ -142,8 +142,8 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
                     };
 
                     write!(cout, "%{{");
+                    //assert!(cout.reset().unwrap());
                     cout.fg(term::color::BRIGHT_BLACK).unwrap();
-                    cout.bg(term::color::BLACK).unwrap();
                     write!(cout, "%}}");
                     write!(cout, "");
                     write!(cout, "%{{");
