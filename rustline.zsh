@@ -1,4 +1,4 @@
-RUSTLINE_COMMAND=$PWD/target/debug/rustline
+RUSTLINE_COMMAND=$PWD/target/release/rustline
 
 _rustline_append_precmd_function() {
         if test -z "${precmd_functions[(re)$1]}" ; then
