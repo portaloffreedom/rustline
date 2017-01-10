@@ -61,7 +61,7 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
         write!(cout, " {} ", username);
 
         write!(cout, "%{{");
-        assert!(cout.reset().unwrap());
+        cout.reset().unwrap();
         cout.fg(BG_NAME).unwrap();
         cout.bg(BG_PATH).unwrap();
         write!(cout, "%}}");
@@ -95,7 +95,7 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
         // */
 
         write!(cout, "%{{");
-        assert!(cout.reset().unwrap());
+        cout.reset().unwrap();
         write!(cout, "%}}");
 
         // if jobs are present
@@ -111,13 +111,13 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
             write!(cout, "%}}");
             write!(cout, " {} ", conf.flag_jobnum);
             write!(cout, "%{{");
-            assert!(cout.reset().unwrap());
+            cout.reset().unwrap();
             cout.fg(term::color::YELLOW).unwrap();
             write!(cout, "%}}");
             write!(cout, " ");
         } else {
             write!(cout, "%{{");
-            assert!(cout.reset().unwrap());
+            cout.reset().unwrap();
             cout.fg(BG_PATH).unwrap();
             write!(cout, "%}}");
             write!(cout, " ");
@@ -142,7 +142,7 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
                     };
 
                     write!(cout, "%{{");
-                    //assert!(cout.reset().unwrap());
+                    //cout.reset().unwrap();
                     cout.fg(term::color::BRIGHT_BLACK).unwrap();
                     write!(cout, "%}}");
                     write!(cout, "");
@@ -163,6 +163,8 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
                         RepositoryState::RebaseMerge => "RebaseMerge ",
                         RepositoryState::ApplyMailbox => "ApplyMailbox ",
                         RepositoryState::ApplyMailboxOrRebase => "ApplyMailboxOrRebase ",
+                        RepositoryState::RevertSequence => "RevertSequence ",
+                        RepositoryState::CherryPickSequence => "CherryPickSequence ",
                     };
 
                     if status != "" {
@@ -272,7 +274,7 @@ fn main() {
     }
 
     write!(cout, "%{{");
-    assert!(cout.reset().unwrap());
+    cout.reset().unwrap();
     write!(cout, "%}}");
     //cout.flush().unwrap();
 }
