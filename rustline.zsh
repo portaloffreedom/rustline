@@ -1,4 +1,5 @@
-RUSTLINE_COMMAND=$PWD/target/release/rustline
+DIR="$( dirname "$0" )"
+RUSTLINE_COMMAND=$DIR/target/release/rustline
 
 _rustline_append_precmd_function() {
         if test -z "${precmd_functions[(re)$1]}" ; then
