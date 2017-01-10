@@ -4,7 +4,7 @@ extern crate git2;
 use std::env;
 use std::process::exit;
 use term::StdoutTerminal;
-use git2::{Repository,Reference, RepositoryState};
+use git2::{Repository, RepositoryState};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -46,85 +46,87 @@ fn print_usage_and_exit(exit_code: i32) {
     exit(exit_code);
 }
 
-fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) {
+fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std::io::Error> {
 
-        write!(cout, "%{{");
+        try!(write!(cout, "%{{"));
         cout.fg(FG_NAME).unwrap();
         cout.bg(BG_NAME).unwrap();
         cout.attr(term::Attr::Bold).unwrap();
-        write!(cout, "%}}");
+        try!(write!(cout, "%}}"));
         let username = match env::var("USER") {
             Ok(val) => val,
             Err(_) => "".to_string(),
         };
 
-        write!(cout, " {} ", username);
+        try!(write!(cout, " {} ", username));
 
-        write!(cout, "%{{");
+        try!(write!(cout, "%{{"));
         cout.reset().unwrap();
         cout.fg(BG_NAME).unwrap();
         cout.bg(BG_PATH).unwrap();
-        write!(cout, "%}}");
-        write!(cout, "");
-        write!(cout, "%{{");
+        try!(write!(cout, "%}}"));
+        try!(write!(cout, ""));
+        try!(write!(cout, "%{{"));
         cout.fg(FG_PATH).unwrap();
-        write!(cout, "%}}");
+        try!(write!(cout, "%}}"));
 
 
         match conf.flag_shortened_path.rfind("") {
             None => {
-                write!(cout, "%{{");
+                try!(write!(cout, "%{{"));
                 cout.attr(term::Attr::Bold).unwrap();
-                write!(cout, "%}}");
-                write!(cout, " {} ", &conf.flag_shortened_path);
+                try!(write!(cout, "%}}"));
+                try!(write!(cout, " {} ", &conf.flag_shortened_path));
             },
             Some(i) => {
-                write!(cout, " {}", &conf.flag_shortened_path[0..i+3]);
-                write!(cout, "%{{");
+                try!(write!(cout, " {}", &conf.flag_shortened_path[0..i+3]));
+                try!(write!(cout, "%{{"));
                 cout.attr(term::Attr::Bold).unwrap();
-                write!(cout, "%}}");
-                write!(cout, "{} ", &conf.flag_shortened_path[i+3..]);
+                try!(write!(cout, "%}}"));
+                try!(write!(cout, "{} ", &conf.flag_shortened_path[i+3..]));
             }
         };
         /*
         if conf.flag_shortened_path.len() <= 0 {
-            write!(cout, " missing! ");
+            try!(write!(cout, " missing! "));
         } else {
-            write!(cout, " {} ", conf.flag_shortened_path);
+            try!(write!(cout, " {} ", conf.flag_shortened_path));
         }
         // */
 
-        write!(cout, "%{{");
+        try!(write!(cout, "%{{"));
         cout.reset().unwrap();
-        write!(cout, "%}}");
+        try!(write!(cout, "%}}"));
 
         // if jobs are present
         if conf.flag_jobnum != "0" {
-            write!(cout, "%{{");
+            try!(write!(cout, "%{{"));
             cout.fg(BG_PATH).unwrap();
             cout.bg(term::color::YELLOW).unwrap();
-            write!(cout, "%}}");
-            write!(cout, "");
-            write!(cout, "%{{");
+            try!(write!(cout, "%}}"));
+            try!(write!(cout, ""));
+            try!(write!(cout, "%{{"));
             cout.fg(term::color::BRIGHT_YELLOW).unwrap();
             cout.bg(term::color::YELLOW).unwrap();
-            write!(cout, "%}}");
-            write!(cout, " {} ", conf.flag_jobnum);
-            write!(cout, "%{{");
+            try!(write!(cout, "%}}"));
+            try!(write!(cout, " {} ", conf.flag_jobnum));
+            try!(write!(cout, "%{{"));
             cout.reset().unwrap();
             cout.fg(term::color::YELLOW).unwrap();
-            write!(cout, "%}}");
-            write!(cout, " ");
+            try!(write!(cout, "%}}"));
+            try!(write!(cout, " "));
         } else {
-            write!(cout, "%{{");
+            try!(write!(cout, "%{{"));
             cout.reset().unwrap();
             cout.fg(BG_PATH).unwrap();
-            write!(cout, "%}}");
-            write!(cout, " ");
+            try!(write!(cout, "%}}"));
+            try!(write!(cout, " "));
         }
+
+        Ok(())
 }
 
-fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
+fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std::io::Error> {
     let dir = env::current_dir().unwrap();
 
     match Repository::discover(dir) {
@@ -141,16 +143,16 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
                         },
                     };
 
-                    write!(cout, "%{{");
+                    try!(write!(cout, "%{{"));
                     //cout.reset().unwrap();
                     cout.fg(term::color::BRIGHT_BLACK).unwrap();
-                    write!(cout, "%}}");
-                    write!(cout, "");
-                    write!(cout, "%{{");
+                    try!(write!(cout, "%}}"));
+                    try!(write!(cout, ""));
+                    try!(write!(cout, "%{{"));
                     cout.fg(term::color::WHITE).unwrap();
                     cout.bg(term::color::BRIGHT_BLACK).unwrap();
-                    write!(cout, "%}}");
-                    write!(cout, "  {} ", reference);
+                    try!(write!(cout, "%}}"));
+                    try!(write!(cout, "  {} ", reference));
 
                     let status = match repo.state() {
                         RepositoryState::Clean => "",
@@ -168,10 +170,10 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
                     };
 
                     if status != "" {
-                        write!(cout, "%{{");
+                        try!(write!(cout, "%{{"));
                         cout.fg(term::color::YELLOW).unwrap();
-                        write!(cout, "%}}");
-                        write!(cout, "{}", status);
+                        try!(write!(cout, "%}}"));
+                        try!(write!(cout, "{}", status));
                     }
                 },
                 Err(_) => {},
@@ -182,18 +184,20 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) {
 
     if conf.flag_last_pipe_status != "0" {
 
-        write!(cout, "%{{");
+        try!(write!(cout, "%{{"));
         cout.fg(term::color::RED).unwrap();
         //cout.bg(term::color::BLACK).unwrap();
-        write!(cout, "%}}");
-        write!(cout, "");
-        write!(cout, "%{{");
+        try!(write!(cout, "%}}"));
+        try!(write!(cout, ""));
+        try!(write!(cout, "%{{"));
         cout.fg(term::color::WHITE).unwrap();
         cout.bg(term::color::RED).unwrap();
-        write!(cout, "%}}");
-        write!(cout, " {} ", conf.flag_last_pipe_status);
+        try!(write!(cout, "%}}"));
+        try!(write!(cout, " {} ", conf.flag_last_pipe_status));
 
     }
+
+    Ok(())
 }
 
 fn main() {
@@ -233,7 +237,7 @@ fn main() {
 
         match argument_command {
             "--version" => {
-                writeln!(cout, "Version {}", VERSION);
+                writeln!(cout, "Version {}", VERSION).unwrap();
                 exit(0);
             },
             "-h" => print_usage_and_exit(0),
@@ -258,23 +262,23 @@ fn main() {
             },
             "--jobnum" => conf.flag_jobnum = argument_option.trim().to_string(),
             _ => {
-                write!(cout, "Error unsupported option: \"{}\"\n", argument_command);
+                write!(cout, "Error unsupported option: \"{}\"\n", argument_command).unwrap();
                 print_usage_and_exit(1);
             }
         }
     }
 
     if conf.cmd_left {
-        write_left(&mut cout, &conf);
+        write_left(&mut cout, &conf).unwrap();
     } else if conf.cmd_right {
-        write_right(&mut cout, &conf);
+        write_right(&mut cout, &conf).unwrap();
     } else {
-        writeln!(cout, "ERROR! incorrect usage: left or right missing");
+        writeln!(cout, "ERROR! incorrect usage: left or right missing").unwrap();
         print_usage_and_exit(1);
     }
 
-    write!(cout, "%{{");
+    write!(cout, "%{{").unwrap();
     cout.reset().unwrap();
-    write!(cout, "%}}");
+    write!(cout, "%}}").unwrap();
     //cout.flush().unwrap();
 }
