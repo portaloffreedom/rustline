@@ -48,42 +48,42 @@ fn print_usage_and_exit(exit_code: i32) {
 
 fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std::io::Error> {
 
-        try!(write!(cout, "%{{"));
+        write!(cout, "%{{")?;
         cout.fg(FG_NAME).unwrap();
         cout.bg(BG_NAME).unwrap();
         cout.attr(term::Attr::Bold).unwrap();
-        try!(write!(cout, "%}}"));
+        write!(cout, "%}}")?;
         let username = match env::var("USER") {
             Ok(val) => val,
             Err(_) => "".to_string(),
         };
 
-        try!(write!(cout, " {} ", username));
+        write!(cout, " {} ", username)?;
 
-        try!(write!(cout, "%{{"));
+        write!(cout, "%{{")?;
         cout.reset().unwrap();
         cout.fg(BG_NAME).unwrap();
         cout.bg(BG_PATH).unwrap();
-        try!(write!(cout, "%}}"));
-        try!(write!(cout, ""));
-        try!(write!(cout, "%{{"));
+        write!(cout, "%}}")?;
+        write!(cout, "")?;
+        write!(cout, "%{{")?;
         cout.fg(FG_PATH).unwrap();
-        try!(write!(cout, "%}}"));
+        write!(cout, "%}}")?;
 
 
         match conf.flag_shortened_path.rfind("") {
             None => {
-                try!(write!(cout, "%{{"));
+                write!(cout, "%{{")?;
                 cout.attr(term::Attr::Bold).unwrap();
-                try!(write!(cout, "%}}"));
-                try!(write!(cout, " {} ", &conf.flag_shortened_path));
+                write!(cout, "%}}")?;
+                write!(cout, " {} ", &conf.flag_shortened_path)?;
             },
             Some(i) => {
-                try!(write!(cout, " {}", &conf.flag_shortened_path[0..i+3]));
-                try!(write!(cout, "%{{"));
+                write!(cout, " {}", &conf.flag_shortened_path[0..i + 3])?;
+                write!(cout, "%{{")?;
                 cout.attr(term::Attr::Bold).unwrap();
-                try!(write!(cout, "%}}"));
-                try!(write!(cout, "{} ", &conf.flag_shortened_path[i+3..]));
+                write!(cout, "%}}")?;
+                write!(cout, "{} ", &conf.flag_shortened_path[i + 3..])?;
             }
         };
         /*
@@ -94,33 +94,33 @@ fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std::
         }
         // */
 
-        try!(write!(cout, "%{{"));
+        write!(cout, "%{{")?;
         cout.reset().unwrap();
-        try!(write!(cout, "%}}"));
+        write!(cout, "%}}")?;
 
         // if jobs are present
         if conf.flag_jobnum != "0" {
-            try!(write!(cout, "%{{"));
+            write!(cout, "%{{")?;
             cout.fg(BG_PATH).unwrap();
             cout.bg(term::color::YELLOW).unwrap();
-            try!(write!(cout, "%}}"));
-            try!(write!(cout, ""));
-            try!(write!(cout, "%{{"));
+            write!(cout, "%}}")?;
+            write!(cout, "")?;
+            write!(cout, "%{{")?;
             cout.fg(term::color::BRIGHT_YELLOW).unwrap();
             cout.bg(term::color::YELLOW).unwrap();
-            try!(write!(cout, "%}}"));
-            try!(write!(cout, " {} ", conf.flag_jobnum));
-            try!(write!(cout, "%{{"));
+            write!(cout, "%}}")?;
+            write!(cout, " {} ", conf.flag_jobnum)?;
+            write!(cout, "%{{")?;
             cout.reset().unwrap();
             cout.fg(term::color::YELLOW).unwrap();
-            try!(write!(cout, "%}}"));
-            try!(write!(cout, " "));
+            write!(cout, "%}}")?;
+            write!(cout, " ")?;
         } else {
-            try!(write!(cout, "%{{"));
+            write!(cout, "%{{")?;
             cout.reset().unwrap();
             cout.fg(BG_PATH).unwrap();
-            try!(write!(cout, "%}}"));
-            try!(write!(cout, " "));
+            write!(cout, "%}}")?;
+            write!(cout, " ")?;
         }
 
         Ok(())
@@ -143,16 +143,16 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std:
                         },
                     };
 
-                    try!(write!(cout, "%{{"));
+                    write!(cout, "%{{")?;
                     //cout.reset().unwrap();
                     cout.fg(term::color::BRIGHT_BLACK).unwrap();
-                    try!(write!(cout, "%}}"));
-                    try!(write!(cout, ""));
-                    try!(write!(cout, "%{{"));
+                    write!(cout, "%}}")?;
+                    write!(cout, "")?;
+                    write!(cout, "%{{")?;
                     cout.fg(term::color::WHITE).unwrap();
                     cout.bg(term::color::BRIGHT_BLACK).unwrap();
-                    try!(write!(cout, "%}}"));
-                    try!(write!(cout, "  {} ", reference));
+                    write!(cout, "%}}")?;
+                    write!(cout, "  {} ", reference)?;
 
                     let status = match repo.state() {
                         RepositoryState::Clean => "",
@@ -170,10 +170,10 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std:
                     };
 
                     if status != "" {
-                        try!(write!(cout, "%{{"));
+                        write!(cout, "%{{")?;
                         cout.fg(term::color::YELLOW).unwrap();
-                        try!(write!(cout, "%}}"));
-                        try!(write!(cout, "{}", status));
+                        write!(cout, "%}}")?;
+                        write!(cout, "{}", status)?;
                     }
                 },
                 Err(_) => {},
@@ -184,16 +184,16 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std:
 
     if conf.flag_last_pipe_status != "0" {
 
-        try!(write!(cout, "%{{"));
+        write!(cout, "%{{")?;
         cout.fg(term::color::RED).unwrap();
         //cout.bg(term::color::BLACK).unwrap();
-        try!(write!(cout, "%}}"));
-        try!(write!(cout, ""));
-        try!(write!(cout, "%{{"));
+        write!(cout, "%}}")?;
+        write!(cout, "")?;
+        write!(cout, "%{{")?;
         cout.fg(term::color::WHITE).unwrap();
         cout.bg(term::color::RED).unwrap();
-        try!(write!(cout, "%}}"));
-        try!(write!(cout, " {} ", conf.flag_last_pipe_status));
+        write!(cout, "%}}")?;
+        write!(cout, " {} ", conf.flag_last_pipe_status)?;
 
     }
 
