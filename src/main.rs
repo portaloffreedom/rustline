@@ -1,9 +1,12 @@
-extern crate term;
+extern crate termion;
 extern crate git2;
 
 use std::env;
 use std::process::exit;
-use term::StdoutTerminal;
+use std::io::{Write, stdout};
+use termion::{color, style, cursor};
+use termion::color::Color;
+use termion::raw::{IntoRawMode, RawTerminal};
 use git2::{Repository, RepositoryState};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -27,10 +30,10 @@ Options:
 
 ";
 
-const FG_NAME: u16 = term::color::BRIGHT_WHITE;
-const BG_NAME: u16 = term::color::CYAN;
-const FG_PATH: u16 = term::color::WHITE;
-const BG_PATH: u16 = term::color::BRIGHT_BLACK;
+const FG_NAME: color::LightWhite = color::LightWhite;
+const BG_NAME: color::Cyan = color::Cyan;
+const FG_PATH: color::White = color::White;
+const BG_PATH: color::LightBlack = color::LightBlack;
 
 struct Config {
     flag_shortened_path: String,
@@ -46,87 +49,61 @@ fn print_usage_and_exit(exit_code: i32) {
     exit(exit_code);
 }
 
-fn write_left(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std::io::Error> {
+fn write_left(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<(), std::io::Error> {
+    write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}{}%}} ",
+           color::Fg(FG_NAME),
+           color::Bg(BG_NAME),
+           style::Bold,
+           style::Reset,
+           color::Fg(BG_NAME),
+           color::Bg(BG_PATH),
+           color::Fg(FG_PATH),
+    )?;
 
-        write!(cout, "%{{")?;
-        cout.fg(FG_NAME).unwrap();
-        cout.bg(BG_NAME).unwrap();
-        cout.attr(term::Attr::Bold).unwrap();
-        write!(cout, "%}}")?;
-        let username = match env::var("USER") {
-            Ok(val) => val,
-            Err(_) => "".to_string(),
-        };
-
-        write!(cout, " {} ", username)?;
-
-        write!(cout, "%{{")?;
-        cout.reset().unwrap();
-        cout.fg(BG_NAME).unwrap();
-        cout.bg(BG_PATH).unwrap();
-        write!(cout, "%}}")?;
-        write!(cout, "")?;
-        write!(cout, "%{{")?;
-        cout.fg(FG_PATH).unwrap();
-        write!(cout, "%}}")?;
-
-
-        match conf.flag_shortened_path.rfind("") {
-            None => {
-                write!(cout, "%{{")?;
-                cout.attr(term::Attr::Bold).unwrap();
-                write!(cout, "%}}")?;
-                write!(cout, " {} ", &conf.flag_shortened_path)?;
-            },
-            Some(i) => {
-                write!(cout, " {}", &conf.flag_shortened_path[0..i + 3])?;
-                write!(cout, "%{{")?;
-                cout.attr(term::Attr::Bold).unwrap();
-                write!(cout, "%}}")?;
-                write!(cout, "{} ", &conf.flag_shortened_path[i + 3..])?;
-            }
-        };
-        /*
-        if conf.flag_shortened_path.len() <= 0 {
-            try!(write!(cout, " missing! "));
-        } else {
-            try!(write!(cout, " {} ", conf.flag_shortened_path));
+    match conf.flag_shortened_path.rfind("") {
+        None => {
+            write!(cout, "%{{{}{}%}}", style::Bold, color::Fg(color::LightWhite))?;
+            write!(cout, "{} ", &conf.flag_shortened_path)?;
+        },
+        Some(i) => {
+            write!(cout, "{}", &conf.flag_shortened_path[0..i + 3])?;
+            write!(cout, "%{{{}{}%}}", style::Bold, color::Fg(color::LightWhite))?;
+            write!(cout, "{} ", &conf.flag_shortened_path[i + 3..])?;
         }
-        // */
+    };
+    /*
+    if conf.flag_shortened_path.len() <= 0 {
+        try!(write!(cout, " missing! "));
+    } else {
+        try!(write!(cout, " {} ", conf.flag_shortened_path));
+    }
+    // */
 
-        write!(cout, "%{{")?;
-        cout.reset().unwrap();
-        write!(cout, "%}}")?;
+    // if jobs are present
+    if conf.flag_jobnum != "0" {
+        write!(cout, "%{{{}{}%}} %{{{}{}%}} {} %{{{}{}%}} %{{{}{}%}} ",
+               color::Bg(color::Yellow),
+               color::Fg(BG_PATH),
+               cursor::Left(1),
+               color::Fg(color::LightYellow),
+               conf.flag_jobnum,
+               style::Reset,
+               color::Fg(color::Yellow),
+               style::Reset,
+               cursor::Left(1),
+        )?;
+    } else {
+        write!(cout, "%{{{}{}%}} %{{{}%}} ",
+               style::Reset,
+               color::Fg(BG_PATH),
+               cursor::Left(1),
+        )?;
+    }
 
-        // if jobs are present
-        if conf.flag_jobnum != "0" {
-            write!(cout, "%{{")?;
-            cout.fg(BG_PATH).unwrap();
-            cout.bg(term::color::YELLOW).unwrap();
-            write!(cout, "%}}")?;
-            write!(cout, "")?;
-            write!(cout, "%{{")?;
-            cout.fg(term::color::BRIGHT_YELLOW).unwrap();
-            cout.bg(term::color::YELLOW).unwrap();
-            write!(cout, "%}}")?;
-            write!(cout, " {} ", conf.flag_jobnum)?;
-            write!(cout, "%{{")?;
-            cout.reset().unwrap();
-            cout.fg(term::color::YELLOW).unwrap();
-            write!(cout, "%}}")?;
-            write!(cout, " ")?;
-        } else {
-            write!(cout, "%{{")?;
-            cout.reset().unwrap();
-            cout.fg(BG_PATH).unwrap();
-            write!(cout, "%}}")?;
-            write!(cout, " ")?;
-        }
-
-        Ok(())
+    Ok(())
 }
 
-fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std::io::Error> {
+fn write_right(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<(), std::io::Error> {
     let dir = env::current_dir().unwrap();
 
     match Repository::discover(dir) {
@@ -143,37 +120,38 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std:
                         },
                     };
 
-                    write!(cout, "%{{")?;
-                    //cout.reset().unwrap();
-                    cout.fg(term::color::BRIGHT_BLACK).unwrap();
-                    write!(cout, "%}}")?;
-                    write!(cout, "")?;
-                    write!(cout, "%{{")?;
-                    cout.fg(term::color::WHITE).unwrap();
-                    cout.bg(term::color::BRIGHT_BLACK).unwrap();
-                    write!(cout, "%}}")?;
-                    write!(cout, "  {} ", reference)?;
+                    write!(cout, "%{{  {}{}%}}%{{{}{} %}}%{{ %}}{}",
+                           style::Reset,
+                           color::Fg(color::LightBlack),
+                           color::Fg(color::White),
+                           color::Bg(color::LightBlack),
+                           reference,
+                    )?;
+
+                    if conf.flag_last_pipe_status == "0" {
+                        write!(cout, " ")?;
+                    }
 
                     let status = match repo.state() {
-                        RepositoryState::Clean => "",
-                        RepositoryState::Merge => "Merge ",
-                        RepositoryState::Revert => "Revert ",
-                        RepositoryState::CherryPick => "CherryPick ",
-                        RepositoryState::Bisect => "Bisect ",
-                        RepositoryState::Rebase => "Rebase ",
-                        RepositoryState::RebaseInteractive => "RebaseInteractive ",
-                        RepositoryState::RebaseMerge => "RebaseMerge ",
-                        RepositoryState::ApplyMailbox => "ApplyMailbox ",
-                        RepositoryState::ApplyMailboxOrRebase => "ApplyMailboxOrRebase ",
-                        RepositoryState::RevertSequence => "RevertSequence ",
-                        RepositoryState::CherryPickSequence => "CherryPickSequence ",
+                        RepositoryState::Clean => None,
+                        RepositoryState::Merge => Some("Merge "),
+                        RepositoryState::Revert => Some("Revert "),
+                        RepositoryState::CherryPick => Some("CherryPick "),
+                        RepositoryState::Bisect => Some("Bisect "),
+                        RepositoryState::Rebase => Some("Rebase "),
+                        RepositoryState::RebaseInteractive => Some("RebaseInteractive "),
+                        RepositoryState::RebaseMerge => Some("RebaseMerge "),
+                        RepositoryState::ApplyMailbox => Some("ApplyMailbox "),
+                        RepositoryState::ApplyMailboxOrRebase => Some("ApplyMailboxOrRebase "),
+                        RepositoryState::RevertSequence => Some("RevertSequence "),
+                        RepositoryState::CherryPickSequence => Some("CherryPickSequence "),
                     };
 
-                    if status != "" {
-                        write!(cout, "%{{")?;
-                        cout.fg(term::color::YELLOW).unwrap();
-                        write!(cout, "%}}")?;
-                        write!(cout, "{}", status)?;
+                    if let Some(status_message) = status {
+                        write!(cout, "%{{{}%}}{}",
+                               color::Fg(color::Yellow),
+                               status_message,
+                        )?;
                     }
                 },
                 Err(_) => {},
@@ -184,16 +162,12 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std:
 
     if conf.flag_last_pipe_status != "0" {
 
-        write!(cout, "%{{")?;
-        cout.fg(term::color::RED).unwrap();
-        //cout.bg(term::color::BLACK).unwrap();
-        write!(cout, "%}}")?;
-        write!(cout, "")?;
-        write!(cout, "%{{")?;
-        cout.fg(term::color::WHITE).unwrap();
-        cout.bg(term::color::RED).unwrap();
-        write!(cout, "%}}")?;
-        write!(cout, " {} ", conf.flag_last_pipe_status)?;
+        write!(cout, "%{{{} %}}%{{{}{} %}}{} ",
+               color::Fg(color::Red),
+               color::Fg(color::White),
+               color::Bg(color::Red),
+               conf.flag_last_pipe_status,
+        )?;
 
     }
 
@@ -201,8 +175,7 @@ fn write_right(cout: &mut Box<StdoutTerminal>, conf: &Config) -> Result<(), std:
 }
 
 fn main() {
-    //println!("\n############################");
-    let mut cout = term::stdout().unwrap();
+    let mut cout = stdout().into_raw_mode().unwrap();
 
     let mut conf = Config {
         flag_shortened_path: "".to_string(),
@@ -245,7 +218,7 @@ fn main() {
             "left" => conf.cmd_left = true,
             "right" => conf.cmd_right = true,
             "--last_exit_code" => conf.flag_last_exit_code = argument_option.to_string(),
-            "--last_pipe_status" => conf.flag_last_pipe_status = argument_option.replace(" ", "  "),
+            "--last_pipe_status" => conf.flag_last_pipe_status = argument_option.replace(" ", "%{ %}%{ %}"),
             //"--shortened_path" => conf.flag_shortened_path = argument_option.to_string(),
             "--shortened_path" => {
                 if argument_option == "/" {
@@ -254,8 +227,9 @@ fn main() {
                     break;
                 }
 
-                conf.flag_shortened_path = argument_option.replace("/", "  ");
-                if conf.flag_shortened_path.starts_with("  ") {
+                let separator = "%{ %}%{ %}";
+                conf.flag_shortened_path = argument_option.replace("/", &separator);
+                if conf.flag_shortened_path.starts_with(&separator) {
                     // it starts from the root and not from "~"
                     conf.flag_shortened_path.insert(0, '/');
                 }
@@ -277,8 +251,5 @@ fn main() {
         print_usage_and_exit(1);
     }
 
-    write!(cout, "%{{").unwrap();
-    cout.reset().unwrap();
-    write!(cout, "%}}").unwrap();
-    //cout.flush().unwrap();
+    write!(cout, "%{{{}%}}", style::Reset).unwrap();
 }
