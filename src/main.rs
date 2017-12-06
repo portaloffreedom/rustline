@@ -50,7 +50,7 @@ fn print_usage_and_exit(exit_code: i32) {
 }
 
 fn write_left(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<(), std::io::Error> {
-    write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}{}%}} ",
+    write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}%}}%{{{}%}} ",
            color::Fg(FG_NAME),
            color::Bg(BG_NAME),
            style::Bold,
@@ -81,22 +81,19 @@ fn write_left(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<
 
     // if jobs are present
     if conf.flag_jobnum != "0" {
-        write!(cout, "%{{{}{}%}} %{{{}{}%}} {} %{{{}{}%}} %{{{}{}%}} ",
+        write!(cout, "%{{{}{}%}}%{{{}%}} {} %{{{}{}%}}%{{{}%}} ",
                color::Bg(color::Yellow),
                color::Fg(BG_PATH),
-               cursor::Left(1),
                color::Fg(color::LightYellow),
                conf.flag_jobnum,
                style::Reset,
                color::Fg(color::Yellow),
                style::Reset,
-               cursor::Left(1),
         )?;
     } else {
-        write!(cout, "%{{{}{}%}} %{{{}%}} ",
+        write!(cout, "%{{{}{}%}} ",
                style::Reset,
                color::Fg(BG_PATH),
-               cursor::Left(1),
         )?;
     }
 
@@ -120,7 +117,8 @@ fn write_right(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result
                         },
                     };
 
-                    write!(cout, "%{{  {}{}%}}%{{{}{} %}}%{{ %}}{}",
+
+                    write!(cout, "%{{{}{}%}}%{{{}{}%}}  {}",
                            style::Reset,
                            color::Fg(color::LightBlack),
                            color::Fg(color::White),
@@ -162,7 +160,7 @@ fn write_right(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result
 
     if conf.flag_last_pipe_status != "0" {
 
-        write!(cout, "%{{{} %}}%{{{}{} %}}{} ",
+        write!(cout, "%{{{}%}} %{{{}{}%}} {} ",
                color::Fg(color::Red),
                color::Fg(color::White),
                color::Bg(color::Red),
@@ -218,7 +216,7 @@ fn main() {
             "left" => conf.cmd_left = true,
             "right" => conf.cmd_right = true,
             "--last_exit_code" => conf.flag_last_exit_code = argument_option.to_string(),
-            "--last_pipe_status" => conf.flag_last_pipe_status = argument_option.replace(" ", "%{ %}%{ %}"),
+            "--last_pipe_status" => conf.flag_last_pipe_status = argument_option.replace(" ", "  "),
             //"--shortened_path" => conf.flag_shortened_path = argument_option.to_string(),
             "--shortened_path" => {
                 if argument_option == "/" {
@@ -227,7 +225,7 @@ fn main() {
                     break;
                 }
 
-                let separator = "%{ %}%{ %}";
+                let separator = "  ";
                 conf.flag_shortened_path = argument_option.replace("/", &separator);
                 if conf.flag_shortened_path.starts_with(&separator) {
                     // it starts from the root and not from "~"
