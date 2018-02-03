@@ -1,5 +1,6 @@
 pipeline:
   compile:
-    image: dockerfile/nginx
+    image: rust
     commands:
       - echo hello world
+      - cargo build --release
