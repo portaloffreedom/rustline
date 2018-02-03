@@ -1,3 +1,5 @@
-image: dockerfile/nginx
-script:
-  - echo hello world
+pipeline:
+  compile:
+    image: dockerfile/nginx
+    commands:
+      - echo hello world
