@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Matteo De Carlo <matteo.dek@gmail.com>"]
 
 [dependencies]
-term = "0.4.4"
-git2 = "0.6.3"
+term = "0.4.5"
+git2 = "0.6.5"
