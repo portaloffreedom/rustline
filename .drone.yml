@@ -1,6 +1,6 @@
 pipeline:
   compile:
-    image: rust
+    image: rust-cmake
     commands:
       - echo hello world
       - cargo build --release
