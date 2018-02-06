@@ -4,8 +4,7 @@ extern crate git2;
 use std::env;
 use std::process::exit;
 use std::io::{Write, stdout};
-use termion::{color, style, cursor};
-use termion::color::Color;
+use termion::{color, style};
 use termion::raw::{IntoRawMode, RawTerminal};
 use git2::{Repository, RepositoryState};
 
