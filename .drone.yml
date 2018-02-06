@@ -1,5 +1,8 @@
 pipeline:
   compile:
     image: rust-cmake
+    cache: 
+      - /usr/local/cargo/registry
+      - .cargo
     commands:
       - cargo build --release
