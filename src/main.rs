@@ -49,15 +49,19 @@ fn print_usage_and_exit(exit_code: i32) {
 }
 
 fn write_left(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<(), std::io::Error> {
-    write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}%}}%{{{}%}} ",
-           color::Fg(FG_NAME),
-           color::Bg(BG_NAME),
-           style::Bold,
-           style::Reset,
-           color::Fg(BG_NAME),
-           color::Bg(BG_PATH),
-           color::Fg(FG_PATH),
-    )?;
+    if env::var("USER") != env::var("DEFAULT_USER") {
+        write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}%}}%{{{}%}} ",
+            color::Fg(FG_NAME),
+            color::Bg(BG_NAME),
+            style::Bold,
+            style::Reset,
+            color::Fg(BG_NAME),
+            color::Bg(BG_PATH),
+            color::Fg(FG_PATH),
+        )?;
+    } else {
+        write!(cout, "%{{{}{}{}%}} ",color::Fg(FG_PATH),color::Bg(BG_PATH),color::Fg(FG_PATH) )?;
+    }
 
     match conf.flag_shortened_path.rfind("") {
         None => {
