@@ -4,5 +4,6 @@ name = "rustline"
 version = "0.1.2"
 
 [dependencies]
-git2 = "0.8.0"
+git2 = "0.13.6"
 termion = "1.5.1"
+
