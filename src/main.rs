@@ -5,7 +5,6 @@ use std::env;
 use std::process::exit;
 use std::io::{Write, stdout};
 use termion::{color, style};
-use termion::raw::{IntoRawMode, RawTerminal};
 use git2::{Repository, RepositoryState};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -48,7 +47,7 @@ fn print_usage_and_exit(exit_code: i32) {
     exit(exit_code);
 }
 
-fn write_left(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<(), std::io::Error> {
+fn write_left(cout: &mut std::io::Stdout, conf: &Config) -> Result<(), std::io::Error> {
     write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}%}}%{{{}%}} ",
            color::Fg(FG_NAME),
            color::Bg(BG_NAME),
@@ -99,7 +98,7 @@ fn write_left(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<
     Ok(())
 }
 
-fn write_right(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result<(), std::io::Error> {
+fn write_right(cout: &mut std::io::Stdout, conf: &Config) -> Result<(), std::io::Error> {
     let dir = env::current_dir().unwrap();
 
     match Repository::discover(dir) {
@@ -172,7 +171,7 @@ fn write_right(cout: &mut RawTerminal<std::io::Stdout>, conf: &Config) -> Result
 }
 
 fn main() {
-    let mut cout = stdout().into_raw_mode().unwrap();
+    let mut cout = stdout();
 
     let mut conf = Config {
         flag_shortened_path: "".to_string(),
