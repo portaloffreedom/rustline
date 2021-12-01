@@ -1,10 +1,13 @@
 DIR="$( dirname "$0" )"
 
-if command -v rustline &> /dev/null
+if command -v "$DIR/target/release/rustline" &>/dev/null
+then
+    RUSTLINE_COMMAND="$DIR/target/release/rustline"
+elif command -v rustline &>/dev/null
 then
     RUSTLINE_COMMAND=$( command -v rustline )
 else
-    RUSTLINE_COMMAND="$DIR/target/release/rustline"
+    echo ERROR: rustline command not found
 fi
 
 _rustline_append_precmd_function() {
