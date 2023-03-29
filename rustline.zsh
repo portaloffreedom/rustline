@@ -1,10 +1,19 @@
 DIR="$( dirname "$0" )"
-RUSTLINE_COMMAND=$DIR/target/release/rustline
+
+if command -v "$DIR/target/release/rustline" &>/dev/null
+then
+    RUSTLINE_COMMAND="$DIR/target/release/rustline"
+elif command -v rustline &>/dev/null
+then
+    RUSTLINE_COMMAND=$( command -v rustline )
+else
+    echo ERROR: rustline command not found
+fi
 
 _rustline_append_precmd_function() {
-        if test -z "${precmd_functions[(re)$1]}" ; then
-                precmd_functions+=( $1 )
-        fi
+    if test -z "${precmd_functions[(re)$1]}" ; then
+        precmd_functions+=( $1 )
+    fi
 }
 
 integer _POWERLINE_JOBNUM

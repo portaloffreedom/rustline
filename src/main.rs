@@ -6,6 +6,7 @@ use std::process::exit;
 use std::io::{Write, stdout};
 use termion::{color, style};
 use git2::{Repository, RepositoryState};
+use termion::color::Color;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -32,6 +33,8 @@ const FG_NAME: color::LightWhite = color::LightWhite;
 const BG_NAME: color::Cyan = color::Cyan;
 const FG_PATH: color::White = color::White;
 const BG_PATH: color::LightBlack = color::LightBlack;
+const FG_WARN: color::LightYellow = color::LightYellow;
+const BG_WARN: color::Yellow = color::Yellow;
 
 struct Config {
     flag_shortened_path: String,
@@ -47,13 +50,51 @@ fn print_usage_and_exit(exit_code: i32) {
     exit(exit_code);
 }
 
+fn is_session_ssh() -> bool {
+    let ssh_tty_env = env::var("SSH_TTY").is_ok();
+    if ssh_tty_env {
+        return ssh_tty_env;
+    }
+    //TODO it's also possible to detect if the parent of the shell is `sshd`
+
+    return false;
+}
+
 fn write_left(cout: &mut std::io::Stdout, conf: &Config) -> Result<(), std::io::Error> {
+    if is_session_ssh() {
+        let hostname = hostname::get()
+            .ok()
+            .map(|oss| oss.into_string()
+                // .map(|hostname| format!("@{}", hostname))
+                .ok())
+            .flatten()
+            .unwrap_or_default();
+
+        write!(cout, "%{{{}{}{}%}} 🔒{} %{{{}{}{}%}}%{{{}%}}",
+               color::Fg(FG_WARN),
+               color::Bg(BG_WARN),
+               style::Bold,
+               hostname,
+               style::Reset,
+               color::Fg(BG_WARN),
+               color::Bg(BG_NAME),
+               color::Fg(FG_NAME),
+        )?;
+    }
+
+    let user = env::var("USER");
+    let (fg_name, bg_name): (Box<dyn Color>, Box<dyn Color>) = if user.is_ok() && user.unwrap() == "root" {
+        (Box::new(color::White), Box::new(color::Red))
+    } else {
+        (Box::new(FG_NAME), Box::new(BG_NAME))
+    };
+
     write!(cout, "%{{{}{}{}%}} %n %{{{}{}{}%}}%{{{}%}} ",
-           color::Fg(FG_NAME),
-           color::Bg(BG_NAME),
+           color::Fg(fg_name.as_ref()),
+           color::Bg(bg_name.as_ref()),
            style::Bold,
            style::Reset,
-           color::Fg(BG_NAME),
+           color::Fg(bg_name.as_ref()),
            color::Bg(BG_PATH),
            color::Fg(FG_PATH),
     )?;
