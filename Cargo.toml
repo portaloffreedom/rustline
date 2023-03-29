@@ -5,6 +5,6 @@ version = "0.1.5"
 edition = "2018"
 
 [dependencies]
-git2 = "0.13.6"
-termion = "1.5.5"
+git2 = "0.16.1"
+termion = "2.0.1"
 hostname = "0.3.1"
